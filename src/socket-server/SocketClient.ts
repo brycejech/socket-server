@@ -2,7 +2,8 @@
 import * as WS from 'ws';
 
 export class SocketClient{
-    id: string;
+    id:            string;
+    lastMessageId: string = '';
 
     private _client: WS;
 
