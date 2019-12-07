@@ -56,15 +56,18 @@ export class SocketServer{
             return ws.terminate();
         }
 
-        const channel:  string|null = url.searchParams.get('channel'),
-              clientId: string      = url.searchParams.get('clientId') || uuid();
+        const channel:       string|null = url.searchParams.get('channel'),
+              clientId:      string      = url.searchParams.get('clientId') || uuid(),
+              lastMessageId: string      = url.searchParams.get('lastMessageId') || '';
 
         if(!(channel && clientId)) return ws.terminate();
+
+        ws.send(`{"type": "connection-accepted", "clientId": "${ clientId }", "channel": ${ channel }}`);
 
         (<any>ws).id      = clientId;
         (<any>ws).channel = channel;
 
-        const socketClient = new SocketClient(clientId, ws);
+        const socketClient = new SocketClient(clientId, lastMessageId, ws);
         if(this._channels[channel]){
             (<SocketChannel>this._channels[channel]).addClient(socketClient);
         }
@@ -88,7 +91,7 @@ export class SocketServer{
 
             socketChannel.removeClient(clientId);
 
-            if(socketChannel.clients.length){
+            if(!socketChannel.clients.length){
                 this._channels[channel] = null;
             }
         });
@@ -97,14 +100,10 @@ export class SocketServer{
 
             socketChannel.removeClient(clientId);
 
-            if(socketChannel.clients.length){
+            if(!socketChannel.clients.length){
                 this._channels[channel] = null;
             }
         });
-
-        ws.send(`{"type": "connection-accepted", "clientId": "${ clientId }"}`);
-
-        console.log('Connection accepted');
 
         /*
             =========

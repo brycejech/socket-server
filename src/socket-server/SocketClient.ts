@@ -3,13 +3,14 @@ import * as WS from 'ws';
 
 export class SocketClient{
     id:            string;
-    lastMessageId: string = '';
+    lastMessageId: string;
 
     private _client: WS;
 
-    constructor(id: string, client: WS){
-        this.id      = id;
-        this._client = client;
+    constructor(id: string, lastMessageId: string, client: WS){
+        this.id            = id;
+        this.lastMessageId = lastMessageId || '';
+        this._client       = client;
     }
     
     sendMessage(msg: string){
