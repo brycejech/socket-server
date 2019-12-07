@@ -11,13 +11,8 @@ export class SocketChannel{
         this.messages.push(socketMessage);
 
         const msg: string = JSON.stringify(socketMessage);
-        console.log(`numClients: ${ this.clients.length }`);
         for(let i = 0, len = this.clients.length; i < len; i++){
             const client: SocketClient = this.clients[i];
-
-            console.log(`ClientId: ${ client.id }`);
-            console.log(`lastMessageId: ${ client.lastMessageId }`);
-            console.log('-------------');
 
             client.sendMessage(msg);
 
