@@ -1,0 +1,30 @@
+{
+  "name": "socket-server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "watch": "tsc-watch --onSuccess 'nodemon dist/'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/brycejech/socket-server.git"
+  },
+  "author": "Bryce Jech <bryce@brycejech.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/brycejech/socket-server/issues"
+  },
+  "homepage": "https://github.com/brycejech/socket-server#readme",
+  "devDependencies": {
+    "@types/uuid": "^3.4.6",
+    "@types/ws": "^6.0.4",
+    "tsc-watch": "^4.0.0",
+    "typescript": "^3.7.3"
+  },
+  "dependencies": {
+    "uuid": "^3.3.3",
+    "ws": "^7.2.0"
+  }
+}
