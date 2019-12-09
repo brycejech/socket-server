@@ -4,17 +4,20 @@ import * as http from 'http';
 import * as WS   from 'ws';
 import uuid      from 'uuid/v4';
 
-import { SocketChannel } from './SocketChannel';
-import { SocketClient }  from './SocketClient';
+import { SocketChannel }  from './SocketChannel';
+import { SocketClient }   from './SocketClient';
 import { ISocketMessage } from './interfaces';
 
 export class SocketServer{
     private INTERVAL: number = 5000; // 5 seconds
+    private PATH:     string = 'websocket';
 
     private _server!: WS.Server;
     private _channels: { [key: string]: SocketChannel|null } = { };
 
-    constructor(server: http.Server){
+    constructor(server: http.Server, path?: string){
+        path && (this.PATH = path);
+
         this._server = new WS.Server({ server });
 
         this._server.on('connection', this.handleConnection.bind(this));
@@ -43,8 +46,8 @@ export class SocketServer{
     }
 
     handleConnection(ws: WS, req: Request): void{
-        // Socket clients must provide a client slug for channel notifications
-        // if(!req.url.includes('/websocket/')) return ws.close();
+        const exp = new RegExp(`^\/${ this.PATH }`, 'i');
+        if(!exp.test(req.url)) return ws.close();
 
         const urlString = `http://localhost${ req.url }`;
 
@@ -57,7 +60,7 @@ export class SocketServer{
         }
 
         const channel:       string|null = url.searchParams.get('channel'),
-              clientId:      string      = url.searchParams.get('clientId') || uuid(),
+              clientId:      string      = url.searchParams.get('clientId')      || uuid(),
               lastMessageId: string      = url.searchParams.get('lastMessageId') || '';
 
         if(!(channel && clientId)) return ws.terminate();
@@ -68,14 +71,16 @@ export class SocketServer{
         (<any>ws).channel = channel;
 
         const socketClient = new SocketClient(clientId, lastMessageId, ws);
+
+        let socketChannel: SocketChannel;
         if(this._channels[channel]){
-            (<SocketChannel>this._channels[channel]).addClient(socketClient);
+            socketChannel = <SocketChannel>this._channels[channel];
         }
         else{
-            const socketChannel = this._channels[channel] = new SocketChannel();
-    
-            socketChannel.addClient(socketClient);
+            socketChannel = this._channels[channel] = new SocketChannel();
         }
+
+        socketChannel.addClient(socketClient);
 
 
         /*
@@ -87,8 +92,6 @@ export class SocketServer{
             ws.send(`{ "received": "${ msg }" }`);
         });
         ws.on('error', () => {
-            const socketChannel: SocketChannel = <SocketChannel>this._channels[channel];
-
             socketChannel.removeClient(clientId);
 
             if(!socketChannel.clients.length){
@@ -96,8 +99,6 @@ export class SocketServer{
             }
         });
         ws.on('close', () => {
-            const socketChannel: SocketChannel = <SocketChannel>this._channels[channel];
-
             socketChannel.removeClient(clientId);
 
             if(!socketChannel.clients.length){

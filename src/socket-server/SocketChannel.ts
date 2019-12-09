@@ -24,18 +24,23 @@ export class SocketChannel{
         this.clients.push(client);
 
         if(client.lastMessageId){
+            let messagesToSend: ISocketMessage[];
+
             const messageIndex: number = this.getMessageIndex(client.lastMessageId);
             if(~messageIndex){
-                const messagesToSend = this.messages.slice(messageIndex + 1);
+                messagesToSend = this.messages.slice(messageIndex + 1);
+            }
+            else{
+                messagesToSend = this.messages;
+            }
 
-                for(let i = 0, len = messagesToSend.length; i < len; i++){
-                    const message:       ISocketMessage = messagesToSend[i],
-                          messageString: string         = JSON.stringify(message);
+            for(let i = 0, len = messagesToSend.length; i < len; i++){
+                const message:       ISocketMessage = messagesToSend[i],
+                      messageString: string         = JSON.stringify(message);
 
-                    client.sendMessage(messageString);
+                client.sendMessage(messageString);
 
-                    client.lastMessageId = message.id;
-                }
+                client.lastMessageId = message.id;
             }
         }
     }
