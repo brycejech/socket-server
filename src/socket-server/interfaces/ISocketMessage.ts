@@ -1,6 +1,7 @@
 
 export interface ISocketMessage{
-    id:   string;
-    type: string;
-    data: any;
+    id:        string;
+    channel:   string;
+    type:      string;
+    data:      any;
 }

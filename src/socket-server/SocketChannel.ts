@@ -10,11 +10,10 @@ export class SocketChannel{
     sendMessage(socketMessage: ISocketMessage): void{
         this.messages.push(socketMessage);
 
-        const msg: string = JSON.stringify(socketMessage);
         for(let i = 0, len = this.clients.length; i < len; i++){
             const client: SocketClient = this.clients[i];
 
-            client.sendMessage(msg);
+            client.sendMessage(socketMessage);
 
             client.lastMessageId = socketMessage.id;
         }
@@ -24,21 +23,16 @@ export class SocketChannel{
         this.clients.push(client);
 
         if(client.lastMessageId){
-            let messagesToSend: ISocketMessage[];
-
             const messageIndex: number = this.getMessageIndex(client.lastMessageId);
-            if(~messageIndex){
-                messagesToSend = this.messages.slice(messageIndex + 1);
-            }
-            else{
-                messagesToSend = this.messages;
-            }
+            
+            const messagesToSend: ISocketMessage[] = ~messageIndex
+                ? this.messages.slice(messageIndex + 1)
+                : this.messages;
 
             for(let i = 0, len = messagesToSend.length; i < len; i++){
-                const message:       ISocketMessage = messagesToSend[i],
-                      messageString: string         = JSON.stringify(message);
+                const message: ISocketMessage = messagesToSend[i];
 
-                client.sendMessage(messageString);
+                client.sendMessage(message);
 
                 client.lastMessageId = message.id;
             }

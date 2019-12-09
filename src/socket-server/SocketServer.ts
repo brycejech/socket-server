@@ -4,9 +4,10 @@ import * as http from 'http';
 import * as WS   from 'ws';
 import uuid      from 'uuid/v4';
 
-import { SocketChannel }  from './SocketChannel';
-import { SocketClient }   from './SocketClient';
-import { ISocketMessage } from './interfaces';
+import { SocketChannel }                        from './SocketChannel';
+import { SocketClient }                         from './SocketClient';
+import { ISocketMessage, IClientSocketMessage } from './interfaces';
+import { MessageType }                          from '../constants';
 
 export class SocketServer{
     private INTERVAL: number = 5000; // 5 seconds
@@ -33,9 +34,10 @@ export class SocketServer{
         const socketChannel: SocketChannel = <SocketChannel>this._channels[channel];
 
         const socketMessage: ISocketMessage = {
-            id:   uuid(),
-            type: type,
-            data: data
+            id:      uuid(),
+            channel: channel,
+            type:    type,
+            data:    data
         }
 
         socketChannel.sendMessage(socketMessage);
@@ -65,7 +67,16 @@ export class SocketServer{
 
         if(!(channel && clientId)) return ws.terminate();
 
-        ws.send(`{"type": "connection-accepted", "clientId": "${ clientId }", "channel": ${ channel }}`);
+        const acceptedMessage: IClientSocketMessage = {
+            id:       uuid(),
+            clientId: clientId,
+            channel:  channel.replace('"', '\\"'),
+            type:     MessageType.CONNECTION_ACCEPTED,
+            data: {
+                clientId: clientId.replace('"', '\\"')
+            }
+        }
+        ws.send(JSON.stringify(acceptedMessage));
 
         (<any>ws).id      = clientId;
         (<any>ws).channel = channel;
@@ -89,7 +100,7 @@ export class SocketServer{
             =============
         */
         ws.on('message', (msg) => {
-            ws.send(`{ "received": "${ msg }" }`);
+
         });
         ws.on('error', () => {
             socketChannel.removeClient(clientId);
