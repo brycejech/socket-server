@@ -7,7 +7,6 @@ import uuid      from 'uuid/v4';
 import { SocketChannel }                        from './SocketChannel';
 import { SocketClient }                         from './SocketClient';
 import { ISocketMessage, IClientSocketMessage } from './interfaces';
-import { MessageType }                          from '../constants';
 
 export class SocketServer{
     private INTERVAL: number = 5000; // 5 seconds
@@ -71,7 +70,7 @@ export class SocketServer{
             id:       uuid(),
             clientId: clientId,
             channel:  channel.replace('"', '\\"'),
-            type:     MessageType.CONNECTION_ACCEPTED,
+            type:     'connection-accepted',
             data: {
                 clientId: clientId.replace('"', '\\"')
             }
